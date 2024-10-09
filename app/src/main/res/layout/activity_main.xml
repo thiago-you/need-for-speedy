@@ -9,7 +9,7 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:id="@+id/hint_score_max_label"
+        android:id="@+id/txt_score_max_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -20,20 +20,20 @@
         app:layout_constraintTop_toBottomOf="@+id/guideline_top" />
 
     <TextView
-        android:id="@+id/hint_score_max"
+        android:id="@+id/txt_score_max"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:text="0"
+        android:text="0 km"
         android:textColor="@color/white"
         android:textSize="13sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hint_score_max_label"
-        tools:text="1000" />
+        app:layout_constraintTop_toBottomOf="@+id/txt_score_max_label"
+        tools:text="1000 km" />
 
     <TextView
-        android:id="@+id/hint_score_current_label"
+        android:id="@+id/txt_score_current_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
@@ -43,20 +43,20 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hint_score_max" />
+        app:layout_constraintTop_toBottomOf="@+id/txt_score_max" />
 
     <TextView
-        android:id="@+id/hint_score_current"
+        android:id="@+id/txt_score_current"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0"
+        android:text="0 km"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/hint_score_current_label"
-        tools:text="100" />
+        app:layout_constraintTop_toBottomOf="@+id/txt_score_current_label"
+        tools:text="100 km" />
 
     <TextView
         android:id="@+id/action_jump_hint"

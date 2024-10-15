@@ -1,5 +1,6 @@
 package you.thiago.needforspeedy
 
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -8,9 +9,11 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.airbnb.lottie.LottieAnimationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -55,8 +58,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun startGame() {
         findViewById<TextView>(R.id.action_jump_hint).visibility = View.GONE
+
         isInitialized = true
+
         setupScore()
+        startPlayer()
         startGeneratingObstacles()
     }
 
@@ -65,11 +71,33 @@ class MainActivity : AppCompatActivity() {
         Handler(Looper.getMainLooper()).postDelayed(::setupScore, 200)
     }
 
+    private fun startPlayer() {
+        findViewById<LottieAnimationView>(R.id.lottie_player).apply {
+            playAnimation()
+
+            val animator = ValueAnimator.ofFloat(0.5f, 0.0f).apply {
+                duration = 300L
+
+                addUpdateListener { animation ->
+                    val value = animation.animatedValue as Float
+
+                    layoutParams = (layoutParams as ConstraintLayout.LayoutParams).apply {
+                        horizontalBias = value
+                    }
+
+                    requestLayout()
+                }
+            }
+
+            animator.start()
+        }
+    }
+
     private fun startGeneratingObstacles() {
         lifecycleScope.launch(Dispatchers.Main) {
             while (true) {
                 generateObstacle() // Generate a new obstacle
-                delay(Random.nextLong(1000, 2000)) // Wait for 1 to 2 seconds before generating next
+                delay(Random.nextLong(1500, 2500)) // Wait for 1 to 2 seconds before generating next
             }
         }
     }
@@ -99,7 +127,7 @@ class MainActivity : AppCompatActivity() {
     private fun moveObstacle(obstacle: View) {
         obstacle.animate()
             .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
-            .setDuration(3000L) // Speed of the obstacle
+            .setDuration(4000L) // Speed of the obstacle
             .withEndAction {
                 gameContainer.removeView(obstacle) // Remove the obstacle when it leaves the screen
             }

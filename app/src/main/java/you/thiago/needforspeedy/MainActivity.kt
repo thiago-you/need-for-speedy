@@ -4,6 +4,8 @@ import android.animation.ValueAnimator
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -21,10 +23,17 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var gameContainer: FrameLayout
+
     private var isInitialized = false
     private var scoreCurrent = 0
 
-    private lateinit var gameContainer: FrameLayout
+    private var pressStartTime: Long = 0
+    private val maxJumpHeight = 300f
+    private val minJumpHeight = 100f
+    private val jumpUpDuration = 500L // Time to go up
+    private val jumpDownDuration = 500L // Time to come down
+    private var isJumping = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,10 +58,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupActions() {
-        findViewById<View>(R.id.main).setOnClickListener {
+        findViewById<View>(R.id.main).setOnTouchListener { view, event ->
             if (!isInitialized) {
                 startGame()
+                return@setOnTouchListener true
             }
+
+            val player = findViewById<LottieAnimationView>(R.id.lottie_player)
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    view.performClick()
+
+                    if (!isJumping) {
+                        jumpPlayer(player)
+                    }
+                }
+
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    if (isJumping) {
+                        cancelPlayerJump(player)
+                    }
+                }
+            }
+
+            return@setOnTouchListener true
         }
     }
 
@@ -91,6 +121,65 @@ class MainActivity : AppCompatActivity() {
 
             animator.start()
         }
+    }
+
+    private fun calculateJumpHeight(pressDuration: Long, minHeight: Float, maxHeight: Float): Float {
+        // Long press increases the jump height (max duration 1 second)
+        val maxPressDuration = 1000L // Max press duration to calculate jump height
+        val normalizedDuration = (pressDuration.coerceAtMost(maxPressDuration).toFloat() / maxPressDuration)
+        return minHeight + (normalizedDuration * (maxHeight - minHeight))
+    }
+
+    private fun jumpPlayer(player: LottieAnimationView) {
+        isJumping = true
+
+        // Animate the player upwards and then downwards
+        player.animate()
+            .translationYBy(-600f) // Move up by jumpHeight
+            .setDuration(1000L / 2)
+            .withEndAction {
+                if (isJumping) {
+                    cancelPlayerJump(player)
+                }
+            }
+            .start()
+    }
+
+    private fun cancelPlayerJump(player: LottieAnimationView) {
+        isJumping = false
+        player.cancelAnimation()
+
+        // Animate the player upwards and then downwards
+        player.animate()
+            .translationYBy(600f) // Move back down
+            .setDuration(1500L / 2)
+            .withEndAction {
+                isJumping = false
+            }
+            .start()
+    }
+
+    private fun adjustJumpHeight(player: LottieAnimationView, jumpHeight: Float, duration: Long) {
+        // Adjust to final jump height if long press
+        val currentY = player.translationY
+        val deltaY = -jumpHeight - currentY // The difference to adjust
+
+        // Move down after the final height is reached
+        player.animate()
+            .translationYBy(deltaY) // Adjust to the final height
+            .setDuration(duration / 2)
+            .withEndAction {
+                // Move back down after reaching the top
+                player.animate()
+                    .translationYBy(-deltaY) // Move back down
+                    .setDuration(duration / 2)
+                    .withEndAction {
+                        // Reset jump state
+                        isJumping = false
+                    }
+                    .start()
+            }
+            .start()
     }
 
     private fun startGeneratingObstacles() {

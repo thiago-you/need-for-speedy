@@ -1,6 +1,7 @@
 package you.thiago.needforspeedy
 
 import android.animation.ValueAnimator
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +26,7 @@ import kotlin.random.Random
 class MainActivity : AppCompatActivity() {
 
     private lateinit var gameContainer: FrameLayout
+    private var mediaPlayer: MediaPlayer? = null
 
     private var isInitialized = false
     private var isInDebugMode = false
@@ -54,6 +56,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         initialize()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     private fun initialize() {
@@ -102,6 +111,7 @@ class MainActivity : AppCompatActivity() {
         setupScore()
         startPlayer()
         startGeneratingObstacles()
+        startBackgroundMusic()
     }
 
     private fun setupScore() {
@@ -222,5 +232,17 @@ class MainActivity : AppCompatActivity() {
 
     private fun getRandomHeight(): Int {
         return Random.nextInt(100, 300)
+    }
+
+    private fun startBackgroundMusic() {
+        mediaPlayer = MediaPlayer.create(this, R.raw.topgear_1)
+        mediaPlayer?.start()
+    }
+
+    private fun startGameOverMusic() {
+        mediaPlayer?.release()
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.gameover)
+        mediaPlayer?.start()
     }
 }

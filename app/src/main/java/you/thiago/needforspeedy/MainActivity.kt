@@ -9,6 +9,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -26,6 +27,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gameContainer: FrameLayout
 
     private var isInitialized = false
+    private var isInDebugMode = false
     private var scoreCurrent = 0
 
     private var pressStartTime: Long = 0
@@ -59,6 +61,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupActions() {
+        findViewById<View>(R.id.action_debug).setOnClickListener {
+            isInDebugMode = true
+            Toast.makeText(this, "Debug mode enabled. No collision detection.", Toast.LENGTH_LONG).show()
+        }
+
         findViewById<View>(R.id.main).setOnTouchListener { view, event ->
             if (!isInitialized) {
                 startGame()

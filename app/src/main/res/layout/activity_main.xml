@@ -82,9 +82,9 @@
         android:id="@+id/layout_land_box"
         android:layout_width="match_parent"
         android:layout_height="200dp"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_center"/>
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/lottie_player"
@@ -93,12 +93,24 @@
         android:layout_marginBottom="-30dp"
         android:rotationY="180"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/guideline_center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_center"
         app:lottie_autoPlay="false"
         app:lottie_loop="true"
         app:lottie_rawRes="@raw/anim_car" />
+
+    <ImageView
+        android:id="@+id/action_debug"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_baseline_bug_report_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="ContentDescription" />
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_bottom"

@@ -1,7 +1,9 @@
 package you.thiago.needforspeedy
 
 import android.animation.ValueAnimator
+import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.media.SoundPool
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,6 +29,10 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var gameContainer: FrameLayout
     private var mediaPlayer: MediaPlayer? = null
+
+    private var soundPool: SoundPool? = null
+    private var soundCarId: Int = 0
+    private var soundJumpId: Int = 0
 
     private var isInitialized = false
     private var isInDebugMode = false
@@ -63,10 +69,14 @@ class MainActivity : AppCompatActivity() {
 
         mediaPlayer?.release()
         mediaPlayer = null
+
+        soundPool?.release()
+        soundPool = null
     }
 
     private fun initialize() {
         setupActions()
+        initSoundEffects()
     }
 
     private fun setupActions() {
@@ -109,9 +119,13 @@ class MainActivity : AppCompatActivity() {
         isInitialized = true
 
         setupScore()
-        startPlayer()
-        startGeneratingObstacles()
-        startBackgroundMusic()
+        playCarSoundEffect()
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            startPlayer()
+            startGeneratingObstacles()
+            startBackgroundMusic()
+        }, 1000)
     }
 
     private fun setupScore() {
@@ -146,6 +160,8 @@ class MainActivity : AppCompatActivity() {
         pressStartTime = SystemClock.elapsedRealtime()
 
         isJumping = true
+
+        playJumpSoundEffect()
 
         // Animate the player upwards and then downwards
         player.animate()
@@ -235,8 +251,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startBackgroundMusic() {
-        mediaPlayer = MediaPlayer.create(this, R.raw.topgear_1)
-        mediaPlayer?.start()
+        Handler(Looper.getMainLooper()).postDelayed({
+            mediaPlayer = MediaPlayer.create(this, R.raw.topgear_1)
+            mediaPlayer?.isLooping = true
+            mediaPlayer?.setVolume(0.4f, 0.4f)
+            mediaPlayer?.start()
+        }, 500)
     }
 
     private fun startGameOverMusic() {
@@ -244,5 +264,39 @@ class MainActivity : AppCompatActivity() {
 
         mediaPlayer = MediaPlayer.create(this, R.raw.gameover)
         mediaPlayer?.start()
+    }
+
+    private fun initSoundEffects() {
+        val audioAttributes = AudioAttributes.Builder()
+            .setUsage(AudioAttributes.USAGE_GAME)
+            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+            .build()
+
+        soundPool = SoundPool.Builder()
+            .setMaxStreams(2)
+            .setAudioAttributes(audioAttributes)
+            .build()
+
+        soundPool?.load(this, R.raw.car_sound_3, 1)?.also {
+            soundCarId = it
+        }
+
+        soundPool?.load(this, R.raw.jump_3, 2)?.also {
+            soundJumpId = it
+        }
+    }
+
+    private fun playCarSoundEffect() {
+        if (soundCarId != 0) {
+            // (soundId, leftVolume, rightVolume, priority, loop, rate)
+            soundPool?.play(soundCarId, 2f, 2f, 1, 0, 1f)
+        }
+    }
+
+    private fun playJumpSoundEffect() {
+        if (soundJumpId != 0) {
+            // (soundId, leftVolume, rightVolume, priority, loop, rate)
+            soundPool?.play(soundJumpId, 1f, 1f, 2, 0, 1f)
+        }
     }
 }

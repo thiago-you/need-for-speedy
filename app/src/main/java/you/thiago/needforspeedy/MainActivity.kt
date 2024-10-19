@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity() {
     private var isJumping = false
     private var initialY = 0f
 
+    private val preferencesData by lazy { getSharedPreferences("needforspeedy", MODE_PRIVATE) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -76,8 +78,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initialize() {
+        setupMaxScore()
         setupActions()
         initSoundEffects()
+    }
+
+    private fun setupMaxScore() {
+        val savedScore = preferencesData.getString("score", "0")?.toInt() ?: 0
+        findViewById<TextView>(R.id.txt_score_max).text = "%s km".format(savedScore)
     }
 
     private fun setupActions() {
@@ -123,6 +131,7 @@ class MainActivity : AppCompatActivity() {
 
         isInitialized = true
         isGameRunning = true
+        scoreCurrent = 0
 
         findViewById<TextView>(R.id.txt_score_current).text = "0 km"
 
@@ -335,6 +344,8 @@ class MainActivity : AppCompatActivity() {
 
             isInitialized = false
             isRestarted = true
+
+            saveScore()
         }
 
         isGameRunning = false
@@ -353,5 +364,28 @@ class MainActivity : AppCompatActivity() {
             br.right + collisionLeniency,
             br.bottom + collisionLeniencyBottom
         )
+    }
+
+    private fun saveScore() {
+        val currentScore = getCurrentScore()
+        val savedScore = preferencesData.getString("score", "0")?.toInt() ?: 0
+
+        if (currentScore > savedScore) {
+            with(preferencesData.edit()) {
+                putString("score", currentScore.toString())
+                apply()
+            }
+
+            findViewById<TextView>(R.id.txt_score_max).text = "%s km".format(currentScore)
+        }
+    }
+
+    private fun getCurrentScore(): Int {
+        val score = findViewById<TextView>(R.id.txt_score_current).text
+            .toString()
+            .replace(" km", "")
+            .trim()
+
+        return score.toInt()
     }
 }

@@ -60,12 +60,25 @@
         tools:text="100 km" />
 
     <TextView
-        android:id="@+id/action_jump_hint"
+        android:id="@+id/action_game_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Toque em qualquer lugar para pular"
         android:textColor="@color/white"
+        android:layout_marginBottom="16dp"
         android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/action_restart_game"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/action_restart_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Toque para começar um novo jogo"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="@+id/guideline_bottom"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -78,27 +91,28 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/guideline_center" />
 
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/layout_land_box"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         app:layout_constraintBottom_toTopOf="@+id/guideline_center"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent">
 
-    <com.airbnb.lottie.LottieAnimationView
-        android:id="@+id/lottie_player"
-        android:layout_width="200dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="-30dp"
-        android:rotationY="180"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/guideline_center"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:lottie_autoPlay="false"
-        app:lottie_loop="true"
-        app:lottie_rawRes="@raw/anim_car" />
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottie_player"
+            android:layout_width="200dp"
+            android:layout_height="100dp"
+            android:layout_marginBottom="-30dp"
+            android:rotationY="180"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:lottie_autoPlay="false"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/anim_car" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
         android:id="@+id/action_debug"

@@ -1,6 +1,7 @@
 package you.thiago.needforspeedy
 
 import android.animation.ValueAnimator
+import android.graphics.Rect
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
@@ -27,7 +28,7 @@ import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var gameContainer: FrameLayout
+    private lateinit var gameContainer: ConstraintLayout
     private var mediaPlayer: MediaPlayer? = null
 
     private var soundPool: SoundPool? = null
@@ -35,14 +36,14 @@ class MainActivity : AppCompatActivity() {
     private var soundJumpId: Int = 0
 
     private var isInitialized = false
+    private var isRestarted = false
     private var isInDebugMode = false
+    private var isGameRunning = true
     private var scoreCurrent = 0
+    private var collisionLeniency = 150
+    private var collisionLeniencyBottom = 300
 
     private var pressStartTime: Long = 0
-    private val maxJumpHeight = 300f
-    private val minJumpHeight = 100f
-    private val jumpUpDuration = 500L // Time to go up
-    private val jumpDownDuration = 500L // Time to come down
     private var isJumping = false
     private var initialY = 0f
 
@@ -90,6 +91,9 @@ class MainActivity : AppCompatActivity() {
                 startGame()
                 return@setOnTouchListener true
             }
+            if (!isGameRunning) {
+                return@setOnTouchListener false
+            }
 
             val player = findViewById<LottieAnimationView>(R.id.lottie_player)
 
@@ -114,9 +118,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGame() {
-        findViewById<TextView>(R.id.action_jump_hint).visibility = View.GONE
+        findViewById<TextView>(R.id.action_game_state).visibility = View.GONE
+        findViewById<TextView>(R.id.action_restart_game).visibility = View.GONE
 
         isInitialized = true
+        isGameRunning = true
+
+        findViewById<TextView>(R.id.txt_score_current).text = "0 km"
 
         setupScore()
         playCarSoundEffect()
@@ -129,13 +137,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupScore() {
-        findViewById<TextView>(R.id.txt_score_current).text = "%s km".format((scoreCurrent++).toString())
-        Handler(Looper.getMainLooper()).postDelayed(::setupScore, 200)
+        if (isGameRunning) {
+            findViewById<TextView>(R.id.txt_score_current).text = "%s km".format((scoreCurrent++).toString())
+            Handler(Looper.getMainLooper()).postDelayed(::setupScore, 200)
+        }
     }
 
     private fun startPlayer() {
         findViewById<LottieAnimationView>(R.id.lottie_player).apply {
             playAnimation()
+
+            if (isRestarted) {
+                return
+            }
 
             val animator = ValueAnimator.ofFloat(0.5f, 0.0f).apply {
                 duration = 300L
@@ -198,7 +212,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startGeneratingObstacles() {
         lifecycleScope.launch(Dispatchers.Main) {
-            while (true) {
+            while (isGameRunning) {
                 generateObstacle() // Generate a new obstacle
                 delay(Random.nextLong(1500, 2500)) // Wait for 1 to 2 seconds before generating next
             }
@@ -228,9 +242,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun moveObstacle(obstacle: View) {
+        val player = findViewById<LottieAnimationView>(R.id.lottie_player)
+
         obstacle.animate()
             .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
             .setDuration(4000L) // Speed of the obstacle
+            .setUpdateListener {
+                if (detectCollision(player, obstacle)) {
+                    handleCollision()
+                }
+            }
             .withEndAction {
                 gameContainer.removeView(obstacle) // Remove the obstacle when it leaves the screen
             }
@@ -298,5 +319,39 @@ class MainActivity : AppCompatActivity() {
             // (soundId, leftVolume, rightVolume, priority, loop, rate)
             soundPool?.play(soundJumpId, 1f, 1f, 2, 0, 1f)
         }
+    }
+
+    private fun handleCollision() {
+        if (isGameRunning) {
+            findViewById<TextView>(R.id.action_game_state).apply {
+                this.visibility = View.VISIBLE
+                this.text = "Game Over!"
+            }
+
+            startGameOverMusic()
+            findViewById<LottieAnimationView>(R.id.lottie_player).cancelAnimation()
+
+            findViewById<TextView>(R.id.action_restart_game).visibility = View.VISIBLE
+
+            isInitialized = false
+            isRestarted = true
+        }
+
+        isGameRunning = false
+    }
+
+    private fun detectCollision(a: View, b: View): Boolean {
+        val ar = Rect()
+        val br = Rect()
+
+        a.getHitRect(ar)
+        b.getHitRect(br)
+
+        return ar.intersects(
+            br.left + collisionLeniency,
+            br.top + collisionLeniencyBottom,
+            br.right + collisionLeniency,
+            br.bottom + collisionLeniencyBottom
+        )
     }
 }

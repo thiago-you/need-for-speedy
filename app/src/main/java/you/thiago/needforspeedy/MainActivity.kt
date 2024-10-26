@@ -40,8 +40,8 @@ class MainActivity : AppCompatActivity() {
     private var isInDebugMode = false
     private var isGameRunning = true
     private var scoreCurrent = 0
-    private var collisionLeniency = 150
-    private var collisionLeniencyBottom = 300
+    private var collisionLeniency = 20
+    private var collisionLeniencyBottom = 50
 
     private var pressStartTime: Long = 0
     private var isJumping = false
@@ -90,8 +90,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupActions() {
         findViewById<View>(R.id.action_debug).setOnClickListener {
-            isInDebugMode = true
-            Toast.makeText(this, "Debug mode enabled. No collision detection.", Toast.LENGTH_LONG).show()
+            if (!isInDebugMode) {
+                isInDebugMode = true
+                Toast.makeText(this, "Debug mode enabled. No collision detection.", Toast.LENGTH_LONG).show()
+            } else {
+                isInDebugMode = false
+                Toast.makeText(this, "Debug mode disabled.", Toast.LENGTH_LONG).show()
+            }
         }
 
         findViewById<View>(R.id.main).setOnTouchListener { view, event ->
@@ -223,14 +228,14 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             while (isGameRunning) {
                 generateObstacle() // Generate a new obstacle
-                delay(Random.nextLong(1500, 2500)) // Wait for 1 to 2 seconds before generating next
+                delay(Random.nextLong(2000, 3000)) // Wait for 1 to 2 seconds before generating next
             }
         }
     }
 
     private fun generateObstacle() {
         val obstacle = View(this).apply {
-            val playerSize = 80
+            val playerSize = 220
             val randomHeight = getRandomHeight()
             val floatingObject = Random.nextInt(0, 15) < 2
 
@@ -273,15 +278,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getRandomHWidth(): Int {
-        return Random.nextInt(50, 100)
+        return Random.nextInt(50, 150)
     }
 
     private fun getRandomHeight(): Int {
-        return Random.nextInt(100, 300)
+        return Random.nextInt(50, 200)
     }
 
     private fun startBackgroundMusic() {
         Handler(Looper.getMainLooper()).postDelayed({
+            mediaPlayer?.release()
+
             mediaPlayer = MediaPlayer.create(this, R.raw.topgear_1)
             mediaPlayer?.isLooping = true
             mediaPlayer?.setVolume(0.4f, 0.4f)
@@ -342,28 +349,32 @@ class MainActivity : AppCompatActivity() {
 
             findViewById<TextView>(R.id.action_restart_game).visibility = View.VISIBLE
 
-            isInitialized = false
-            isRestarted = true
-
             saveScore()
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                isInitialized = false
+                isRestarted = true
+            }, 1000)
         }
 
         isGameRunning = false
     }
 
     private fun detectCollision(a: View, b: View): Boolean {
+        if (isInDebugMode) {
+            return false
+        }
+
         val ar = Rect()
         val br = Rect()
 
         a.getHitRect(ar)
         b.getHitRect(br)
 
-        return ar.intersects(
-            br.left + collisionLeniency,
-            br.top + collisionLeniencyBottom,
-            br.right + collisionLeniency,
-            br.bottom + collisionLeniencyBottom
-        )
+        // Adjust leniency only if needed
+        ar.inset(0, -collisionLeniencyBottom)
+
+        return Rect.intersects(ar, br)
     }
 
     private fun saveScore() {

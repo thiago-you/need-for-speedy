@@ -63,9 +63,9 @@
         android:id="@+id/action_game_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
         android:text="Toque em qualquer lugar para pular"
         android:textColor="@color/white"
-        android:layout_marginBottom="16dp"
         android:textSize="18sp"
         app:layout_constraintBottom_toTopOf="@+id/action_restart_game"
         app:layout_constraintEnd_toEndOf="parent"
@@ -99,19 +99,33 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <ImageView
+            android:id="@+id/img_player"
+            android:layout_width="135dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="32dp"
+            android:adjustViewBounds="true"
+            android:elevation="100dp"
+            android:scaleType="fitXY"
+            android:src="@drawable/car_static"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:ignore="ContentDescription" />
+
         <com.airbnb.lottie.LottieAnimationView
             android:id="@+id/lottie_player"
             android:layout_width="200dp"
             android:layout_height="100dp"
             android:layout_marginBottom="-30dp"
+            android:elevation="200dp"
             android:rotationY="180"
-            android:elevation="100dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:lottie_autoPlay="false"
             app:lottie_loop="true"
-            app:lottie_rawRes="@raw/anim_car" />
+            app:lottie_rawRes="@raw/car_anim" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

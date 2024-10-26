@@ -12,11 +12,13 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -109,7 +111,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnTouchListener false
             }
 
-            val player = findViewById<LottieAnimationView>(R.id.lottie_player)
+            val player = findViewById<ImageView>(R.id.img_player)
 
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -144,8 +146,15 @@ class MainActivity : AppCompatActivity() {
         setupScore()
         playCarSoundEffect()
 
-        Handler(Looper.getMainLooper()).postDelayed({
+        if (isRestarted) {
             startPlayer()
+        }
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (!isRestarted) {
+                startPlayer()
+            }
+
             startGeneratingObstacles()
             startBackgroundMusic()
         }, 1000)
@@ -160,6 +169,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun startPlayer() {
         findViewById<LottieAnimationView>(R.id.lottie_player).apply {
+            progress = 0f
             playAnimation()
 
             if (isRestarted) {
@@ -178,13 +188,19 @@ class MainActivity : AppCompatActivity() {
 
                     requestLayout()
                 }
+
+                doOnEnd {
+                    this@MainActivity.findViewById<ImageView>(R.id.img_player).visibility = View.VISIBLE
+                }
             }
 
             animator.start()
         }
     }
 
-    private fun jumpPlayer(player: LottieAnimationView) {
+    private fun jumpPlayer(player: ImageView) {
+        findViewById<LottieAnimationView>(R.id.lottie_player).visibility = View.INVISIBLE
+
         initialY = player.translationY
         pressStartTime = SystemClock.elapsedRealtime()
 
@@ -204,9 +220,7 @@ class MainActivity : AppCompatActivity() {
             .start()
     }
 
-    private fun cancelPlayerJump(player: LottieAnimationView) {
-        player.cancelAnimation()
-
+    private fun cancelPlayerJump(player: ImageView) {
         val pressDuration = SystemClock.elapsedRealtime() - pressStartTime
 
         val jumpDownDuration = if (pressDuration <= 500) {
@@ -221,6 +235,7 @@ class MainActivity : AppCompatActivity() {
             .setDuration(jumpDownDuration)
             .withEndAction {
                 isJumping = false
+                findViewById<LottieAnimationView>(R.id.lottie_player).visibility = View.VISIBLE
             }
             .start()
     }
@@ -235,40 +250,66 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun generateObstacle() {
-        val obstacle = View(this).apply {
-            val playerSize = 220
-            val randomHeight = getRandomHeight()
-            val floatingObject = Random.nextInt(0, 15) < 2
+        val playerSize = 180
+        val randomHeight = getRandomHeight()
+        val randomWidth = getRandomWidth()
+        val floatingObject = Random.nextInt(0, 15) < 3
+        val floatingDistance = Random.nextInt(playerSize, playerSize * 3)
 
+        val obstacle = View(this).apply {
             setBackgroundColor(getRandomColor()) // You can replace with an image or shape
-            layoutParams = FrameLayout.LayoutParams(getRandomHWidth(), randomHeight) // Adjust obstacle size
+
+            layoutParams = FrameLayout.LayoutParams(randomWidth, randomHeight) // Adjust obstacle size
             x = gameContainer.width.toFloat() // Start from the right edge of the screen
 
             y = if (floatingObject) {
-                val floatingDistance = Random.nextInt(playerSize, playerSize * 3)
                 (gameContainer.height - randomHeight - floatingDistance).toFloat() // Floating Object
             } else {
                 (gameContainer.height - randomHeight).toFloat() // Fixed on bottom
             }
         }
 
+        val hitbox = View(this).apply {
+            setBackgroundColor(getBlackColor()) // You can replace with an image or shape
+
+            layoutParams = FrameLayout.LayoutParams(randomWidth / 2, randomHeight - 25) // Adjust obstacle size
+            x = gameContainer.width.toFloat() + 50 // Start from the right edge of the screen
+
+            y = if (floatingObject) {
+                (gameContainer.height - randomHeight - 25 - floatingDistance).toFloat() // Floating Object
+            } else {
+                (gameContainer.height - (randomHeight - 25)).toFloat() // Fixed on bottom
+            }
+        }
+
+        gameContainer.addView(hitbox) // Add the obstacle to the game layout
         gameContainer.addView(obstacle) // Add the obstacle to the game layout
-        moveObstacle(obstacle) // Start moving the obstacle
+
+        moveObstacle(obstacle, hitbox) // Start moving the obstacle
     }
 
-    private fun moveObstacle(obstacle: View) {
-        val player = findViewById<LottieAnimationView>(R.id.lottie_player)
+    private fun moveObstacle(obstacle: View, hitbox: View) {
+        val player = findViewById<ImageView>(R.id.img_player)
 
         obstacle.animate()
             .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
-            .setDuration(4000L) // Speed of the obstacle
+            .setDuration(4000L) // Speed of the object
+            .withEndAction {
+                gameContainer.removeView(obstacle) // Remove the obstacle when it leaves the screen
+            }
+            .start()
+
+        hitbox.animate()
+            .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
+            .setDuration(4000L) // Speed of the object
             .setUpdateListener {
-                if (detectCollision(player, obstacle)) {
+                if (detectCollision(player, hitbox)) {
+                    detectCollision(player, hitbox)
                     handleCollision()
                 }
             }
             .withEndAction {
-                gameContainer.removeView(obstacle) // Remove the obstacle when it leaves the screen
+                gameContainer.removeView(hitbox) // Remove the obstacle when it leaves the screen
             }
             .start()
     }
@@ -278,19 +319,23 @@ class MainActivity : AppCompatActivity() {
         return android.graphics.Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
     }
 
-    private fun getRandomHWidth(): Int {
-        return Random.nextInt(50, 150)
+    private fun getBlackColor(): Int {
+        return android.graphics.Color.rgb(0, 0, 0)
+    }
+
+    private fun getRandomWidth(): Int {
+        return Random.nextInt(100, 150)
     }
 
     private fun getRandomHeight(): Int {
-        return Random.nextInt(50, 200)
+        return Random.nextInt(100, 300)
     }
 
     private fun startBackgroundMusic() {
         Handler(Looper.getMainLooper()).postDelayed({
             mediaPlayer?.release()
 
-            mediaPlayer = MediaPlayer.create(this, R.raw.topgear_1)
+            mediaPlayer = MediaPlayer.create(this, R.raw.sound_topgear_1)
             mediaPlayer?.isLooping = true
             mediaPlayer?.setVolume(0.4f, 0.4f)
             mediaPlayer?.start()
@@ -300,7 +345,7 @@ class MainActivity : AppCompatActivity() {
     private fun startGameOverMusic() {
         mediaPlayer?.release()
 
-        mediaPlayer = MediaPlayer.create(this, R.raw.gameover)
+        mediaPlayer = MediaPlayer.create(this, R.raw.sound_gameover)
         mediaPlayer?.start()
     }
 
@@ -315,11 +360,11 @@ class MainActivity : AppCompatActivity() {
             .setAudioAttributes(audioAttributes)
             .build()
 
-        soundPool?.load(this, R.raw.car_sound_3, 1)?.also {
+        soundPool?.load(this, R.raw.sound_car, 1)?.also {
             soundCarId = it
         }
 
-        soundPool?.load(this, R.raw.jump_3, 2)?.also {
+        soundPool?.load(this, R.raw.sound_jump_1, 2)?.also {
             soundJumpId = it
         }
     }
@@ -346,11 +391,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             startGameOverMusic()
+            saveScore()
+
             findViewById<LottieAnimationView>(R.id.lottie_player).cancelAnimation()
+            findViewById<LottieAnimationView>(R.id.lottie_player).progress = 0f
 
             findViewById<TextView>(R.id.action_restart_game).visibility = View.VISIBLE
-
-            saveScore()
 
             Handler(Looper.getMainLooper()).postDelayed({
                 isInitialized = false

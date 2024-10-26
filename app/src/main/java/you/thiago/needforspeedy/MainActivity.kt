@@ -24,6 +24,7 @@ import com.airbnb.lottie.LottieAnimationView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.random.Random
 
 class MainActivity : AppCompatActivity() {
@@ -40,8 +41,8 @@ class MainActivity : AppCompatActivity() {
     private var isInDebugMode = false
     private var isGameRunning = true
     private var scoreCurrent = 0
-    private var collisionLeniency = 20
-    private var collisionLeniencyBottom = 50
+    private val minimumVerticalLeniency = 60
+    private val minimumHorizontalLeniency = 60
 
     private var pressStartTime: Long = 0
     private var isJumping = false
@@ -228,7 +229,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.Main) {
             while (isGameRunning) {
                 generateObstacle() // Generate a new obstacle
-                delay(Random.nextLong(2000, 3000)) // Wait for 1 to 2 seconds before generating next
+                delay(Random.nextLong(1800, 2400)) // Wait for 1 to 2 seconds before generating next
             }
         }
     }
@@ -354,7 +355,7 @@ class MainActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 isInitialized = false
                 isRestarted = true
-            }, 1000)
+            }, 2500)
         }
 
         isGameRunning = false
@@ -371,10 +372,20 @@ class MainActivity : AppCompatActivity() {
         a.getHitRect(ar)
         b.getHitRect(br)
 
-        // Adjust leniency only if needed
-        ar.inset(0, -collisionLeniencyBottom)
+        // Check for basic intersection
+        if (!Rect.intersects(ar, br)) {
+            return false
+        }
 
-        return Rect.intersects(ar, br)
+        // Additional checks for minimum distance thresholds
+        val verticalOverlap = abs(ar.bottom - br.top) < minimumVerticalLeniency ||
+                              abs(br.bottom - ar.top) < minimumVerticalLeniency
+
+        val horizontalOverlap = abs(ar.right - br.left) < minimumHorizontalLeniency ||
+                                abs(br.right - ar.left) < minimumHorizontalLeniency
+
+        // Only return true if there’s an intersection that also meets both minimum distance thresholds
+        return verticalOverlap || horizontalOverlap
     }
 
     private fun saveScore() {

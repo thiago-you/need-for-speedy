@@ -13,6 +13,7 @@
 /.idea/ktlint-plugin.xml
 /.idea/other.xml
 /.idea/vcs.xml
+/.idea/misc.xml
 .DS_Store
 /build
 /captures

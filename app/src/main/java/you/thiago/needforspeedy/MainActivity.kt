@@ -208,9 +208,8 @@ class MainActivity : AppCompatActivity() {
 
         playJumpSoundEffect()
 
-        // Animate the player upwards and then downwards
         player.animate()
-            .translationYBy(-500f) // Move up by jumpHeight
+            .translationYBy(-500f)
             .setDuration(1500L / 2)
             .withEndAction {
                 if (isJumping) {
@@ -229,9 +228,8 @@ class MainActivity : AppCompatActivity() {
             1000L
         }
 
-        // Animate the player upwards and then downwards
         player.animate()
-            .translationY(initialY) // Move back down
+            .translationY(initialY)
             .setDuration(jumpDownDuration)
             .withEndAction {
                 isJumping = false
@@ -243,8 +241,8 @@ class MainActivity : AppCompatActivity() {
     private fun startGeneratingObstacles() {
         lifecycleScope.launch(Dispatchers.Main) {
             while (isGameRunning) {
-                generateObstacle() // Generate a new obstacle
-                delay(Random.nextLong(1800, 2400)) // Wait for 1 to 2 seconds before generating next
+                generateObstacle()
+                delay(Random.nextLong(1800, 2400))
             }
         }
     }
@@ -257,51 +255,51 @@ class MainActivity : AppCompatActivity() {
         val floatingDistance = Random.nextInt(playerSize, playerSize * 3)
 
         val obstacle = View(this).apply {
-            setBackgroundColor(getRandomColor()) // You can replace with an image or shape
+            setBackgroundColor(getRandomColor())
 
-            layoutParams = FrameLayout.LayoutParams(randomWidth, randomHeight) // Adjust obstacle size
-            x = gameContainer.width.toFloat() // Start from the right edge of the screen
+            layoutParams = FrameLayout.LayoutParams(randomWidth, randomHeight)
+            x = gameContainer.width.toFloat()
 
             y = if (floatingObject) {
-                (gameContainer.height - randomHeight - floatingDistance).toFloat() // Floating Object
+                (gameContainer.height - randomHeight - floatingDistance).toFloat()
             } else {
-                (gameContainer.height - randomHeight).toFloat() // Fixed on bottom
+                (gameContainer.height - randomHeight).toFloat()
             }
         }
 
         val hitbox = View(this).apply {
-            setBackgroundColor(getBlackColor()) // You can replace with an image or shape
+            setBackgroundColor(getBlackColor())
 
-            layoutParams = FrameLayout.LayoutParams(randomWidth / 2, randomHeight - 25) // Adjust obstacle size
-            x = gameContainer.width.toFloat() + 50 // Start from the right edge of the screen
+            layoutParams = FrameLayout.LayoutParams(randomWidth / 2, randomHeight - 25)
+            x = gameContainer.width.toFloat() + 50
 
             y = if (floatingObject) {
-                (gameContainer.height - randomHeight - 25 - floatingDistance).toFloat() // Floating Object
+                (gameContainer.height - randomHeight - 25 - floatingDistance).toFloat()
             } else {
-                (gameContainer.height - (randomHeight - 25)).toFloat() // Fixed on bottom
+                (gameContainer.height - (randomHeight - 25)).toFloat()
             }
         }
 
-        gameContainer.addView(hitbox) // Add the obstacle to the game layout
-        gameContainer.addView(obstacle) // Add the obstacle to the game layout
+        gameContainer.addView(hitbox)
+        gameContainer.addView(obstacle)
 
-        moveObstacle(obstacle, hitbox) // Start moving the obstacle
+        moveObstacle(obstacle, hitbox)
     }
 
     private fun moveObstacle(obstacle: View, hitbox: View) {
         val player = findViewById<ImageView>(R.id.img_player)
 
         obstacle.animate()
-            .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
-            .setDuration(4000L) // Speed of the object
+            .translationX(-gameContainer.width.toFloat())
+            .setDuration(4000L)
             .withEndAction {
-                gameContainer.removeView(obstacle) // Remove the obstacle when it leaves the screen
+                gameContainer.removeView(obstacle)
             }
             .start()
 
         hitbox.animate()
-            .translationX(-gameContainer.width.toFloat()) // Move to the left side of the screen
-            .setDuration(4000L) // Speed of the object
+            .translationX(-gameContainer.width.toFloat())
+            .setDuration(4000L)
             .setUpdateListener {
                 if (detectCollision(player, hitbox)) {
                     detectCollision(player, hitbox)
@@ -309,13 +307,12 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .withEndAction {
-                gameContainer.removeView(hitbox) // Remove the obstacle when it leaves the screen
+                gameContainer.removeView(hitbox)
             }
             .start()
     }
 
     private fun getRandomColor(): Int {
-        // Generate a random color for each obstacle (just for demo purposes)
         return android.graphics.Color.rgb(Random.nextInt(256), Random.nextInt(256), Random.nextInt(256))
     }
 
@@ -371,14 +368,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun playCarSoundEffect() {
         if (soundCarId != 0) {
-            // (soundId, leftVolume, rightVolume, priority, loop, rate)
             soundPool?.play(soundCarId, 2f, 2f, 1, 0, 1f)
         }
     }
 
     private fun playJumpSoundEffect() {
         if (soundJumpId != 0) {
-            // (soundId, leftVolume, rightVolume, priority, loop, rate)
             soundPool?.play(soundJumpId, 1f, 1f, 2, 0, 1f)
         }
     }
@@ -418,19 +413,16 @@ class MainActivity : AppCompatActivity() {
         a.getHitRect(ar)
         b.getHitRect(br)
 
-        // Check for basic intersection
         if (!Rect.intersects(ar, br)) {
             return false
         }
 
-        // Additional checks for minimum distance thresholds
         val verticalOverlap = abs(ar.bottom - br.top) < minimumVerticalLeniency ||
                               abs(br.bottom - ar.top) < minimumVerticalLeniency
 
         val horizontalOverlap = abs(ar.right - br.left) < minimumHorizontalLeniency ||
                                 abs(br.right - ar.left) < minimumHorizontalLeniency
 
-        // Only return true if there’s an intersection that also meets both minimum distance thresholds
         return verticalOverlap || horizontalOverlap
     }
 

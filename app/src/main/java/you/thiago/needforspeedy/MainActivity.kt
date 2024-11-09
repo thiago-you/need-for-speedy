@@ -396,7 +396,7 @@ class MainActivity : AppCompatActivity() {
             Handler(Looper.getMainLooper()).postDelayed({
                 isInitialized = false
                 isRestarted = true
-            }, 2500)
+            }, 1500)
         }
 
         isGameRunning = false

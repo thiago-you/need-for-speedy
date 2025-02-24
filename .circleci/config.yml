@@ -1,24 +1,19 @@
 version: 2.1
 
 executors:
-  fastlane-executor:
+  android-executor:
     docker:
-      - image: circleci/ruby:3.0  # Ruby image that includes Fastlane
+      - image: circleci/android:latest  # Use CircleCI's Android image with SDK pre-installed
     working_directory: ~/repo
 
 jobs:
   deploy:
-    executor: fastlane-executor
+    executor: android-executor
     steps:
       - checkout  # Checkout your repository
       - run:
           name: Make gradlew executable
           command: chmod +x gradlew  # Ensure gradlew has executable permissions
-      - run:
-          name: Install JDK 17
-          command: |
-           sudo apt-get update
-           sudo apt-get install -y openjdk-17-jdk
       - run:
           name: Install dependencies
           command: |

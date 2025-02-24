@@ -7,7 +7,7 @@ orbs:
 executors:
   android-executor:
     docker:
-      - image: circleci/android:latest  # Use CircleCI's Android image with SDK pre-installed
+      - image: circleci/android:api-34  # Use CircleCI's Android image with SDK pre-installed
     working_directory: ~/repo
 
 jobs:

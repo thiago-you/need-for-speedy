@@ -20,7 +20,7 @@ platform :android do
     setup_circle_ci
   end
 
-  desc "Build App"
+  desc "Build App with Circle.ci"
   lane :deploy do
     gradle(task: "clean assembleRelease")
   end

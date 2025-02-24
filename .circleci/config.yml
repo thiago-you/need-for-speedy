@@ -2,16 +2,29 @@
 
 version: 2.1
 
-orbs:
-  ruby: circleci/ruby@1.2.0
-  android: circleci/android@2.1.0
+executors:
+  fastlane-executor:
+    docker:
+      - image: circleci/ruby:3.0  # Ruby image that will include Fastlane
+    working_directory: ~/repo
+
+jobs:
+  deploy:
+    executor: fastlane-executor
+    steps:
+      - checkout  # Check out your code
+      - run:
+          name: Install dependencies
+          command: |
+            gem install bundler:2.5.6
+            bundle install --jobs 4 --retry 3  # Install Fastlane and other gems from Gemfile
+      - run:
+          name: Run Fastlane deploy lane
+          command: |
+            bundle exec fastlane deploy  # Call the 'deploy' lane in your Fastfile
 
 workflows:
+  version: 2
   deploy:
     jobs:
-      - android/deploy_to_play_store:
-          executor:
-            name: android/android_docker
-            tag: "2024.11.1"
-          lane_name: deploy
-          fastlane_working_directory: '.'
+      - deploy  # This workflow calls the 'deploy' job defined above

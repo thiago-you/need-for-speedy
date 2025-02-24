@@ -23,3 +23,9 @@ jobs:
           name: Run Fastlane deploy lane
           command: |
             bundle exec fastlane deploy  # Call the 'deploy' lane in your Fastfile
+
+workflows:
+  version: 2
+  deploy:
+    jobs:
+      - deploy  # This workflow calls the 'deploy' job defined above

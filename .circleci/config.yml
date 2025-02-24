@@ -1,5 +1,9 @@
 version: 2.1
 
+orbs:
+  ruby: circleci/ruby@1.2.0
+  android: circleci/android@3.1.0
+
 executors:
   android-executor:
     docker:
@@ -11,21 +15,11 @@ jobs:
     executor: android-executor
     steps:
       - checkout  # Checkout your repository
+      - ruby/install-deps
       - run:
           name: Make gradlew executable
-          command: chmod +x gradlew  # Ensure gradlew has executable permissions
-      - run:
-          name: Install dependencies
-          command: |
-            gem install bundler:2.5.6
-            bundle install --jobs 4 --retry 3  # Install Fastlane and other gems from Gemfile
+          command: chmod +x gradlew
       - run:
           name: Run Fastlane deploy lane
           command: |
             bundle exec fastlane deploy  # Call the 'deploy' lane in your Fastfile
-
-workflows:
-  version: 2
-  deploy:
-    jobs:
-      - deploy  # This workflow calls the 'deploy' job defined above

@@ -1,18 +1,19 @@
-# .circleci/config.yml
-
 version: 2.1
 
 executors:
   fastlane-executor:
     docker:
-      - image: circleci/ruby:3.0  # Ruby image that will include Fastlane
+      - image: circleci/ruby:3.0  # Ruby image that includes Fastlane
     working_directory: ~/repo
 
 jobs:
   deploy:
     executor: fastlane-executor
     steps:
-      - checkout  # Check out your code
+      - checkout  # Checkout your repository
+      - run:
+          name: Make gradlew executable
+          command: chmod +x gradlew  # Ensure gradlew has executable permissions
       - run:
           name: Install dependencies
           command: |

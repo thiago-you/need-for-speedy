@@ -15,6 +15,11 @@ jobs:
           name: Make gradlew executable
           command: chmod +x gradlew  # Ensure gradlew has executable permissions
       - run:
+          name: Install JDK 17
+          command: |
+           sudo apt-get update
+           sudo apt-get install -y openjdk-17-jdk
+      - run:
           name: Install dependencies
           command: |
             gem install bundler:2.5.6

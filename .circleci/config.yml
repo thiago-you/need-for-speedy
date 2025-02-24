@@ -15,6 +15,10 @@ jobs:
     steps:
       - checkout  # Checkout your repository
       - run:
+          name: Install Bundler 2.5.x dependencies
+          command: |
+            bundle install --jobs 4 --retry 3
+      - run:
           name: Make gradlew executable
           command: chmod +x gradlew
       - run:

@@ -1,0 +1,16 @@
+# .circleci/config.yml
+
+version: 2.1
+
+orbs:
+  ruby: circleci/ruby@1.2.0
+
+workflows:
+  deploy:
+    jobs:
+      - android/deploy_to_play_store:
+          executor:
+            name: android/android_docker
+            tag: "2024.11.1"
+          lane_name: deploy
+          fastlane_working_directory: '.'

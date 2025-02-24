@@ -15,9 +15,10 @@ jobs:
     steps:
       - checkout  # Checkout your repository
       - run:
-          name: Install Bundler 2.5.x dependencies
+          name: Install Bundler 2.5.x and dependencies
           command: |
-            bundle install --jobs 4 --retry 3
+            sudo gem install bundler:2.5.6  # Install Bundler 2.5.x, which is compatible with Ruby 3.0
+            bundle install --jobs 4 --retry 3  # Install Fastlane and other gems from Gemfile
       - run:
           name: Make gradlew executable
           command: chmod +x gradlew
